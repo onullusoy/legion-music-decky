@@ -1,0 +1,15 @@
+{
+  "name": "Legion Music Decky",
+  "author": "Onur; MartinPL; mirobouma",
+  "flags": [],
+  "publish": {
+    "tags": [
+      "music",
+      "media",
+      "mpris"
+    ],
+    "description": "Music controls for Legion Go on Bazzite",
+    "image": "https://raw.githubusercontent.com/onullusoy/legion-music-decky/main/assets/screenshot.png"
+  },
+  "api_version": 1
+}

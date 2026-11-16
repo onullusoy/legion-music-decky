@@ -1,0 +1,254 @@
+# Modified 2026-11-16: Legion Go/Bazzite compatibility and Decky API v1 migration.
+import subprocess
+import os
+import sys
+import shutil
+import re
+
+import decky
+
+SP_DEST = "org.mpris.MediaPlayer2.spotify"
+
+MP_PATH = "/org/mpris/MediaPlayer2"
+MP_MEMB_PLAYER = "org.mpris.MediaPlayer2.Player"
+MP_MEMB = "org.mpris.MediaPlayer2"
+PROP_PATH = "org.freedesktop.DBus.Properties.Get"
+PROP_SET_PATH = "org.freedesktop.DBus.Properties.Set"
+
+class Plugin:
+    player = SP_DEST
+    previousCachedImage = ""
+    cacheDir : str = ""
+    symLinkPath : str = ""
+
+    def _get_dbus_env(self):
+        env = os.environ.copy()
+        env["DBUS_SESSION_BUS_ADDRESS"] = f'unix:path=/run/user/{os.getuid()}/bus'
+        return env
+
+    def _sp_player_dbus(self, command, parameters):
+        return subprocess.Popen([
+            "dbus-send", "--print-reply", f"--dest={self.player}",
+            MP_PATH, f"{MP_MEMB_PLAYER}.{command}"
+        ] + (parameters.split() if parameters else []),
+        stdout=subprocess.PIPE,
+        env=self._get_dbus_env(), text=True).communicate()[0]
+
+    def _sp_dbus(self, command, parameters):
+        return subprocess.Popen([
+            "dbus-send", "--print-reply", f"--dest={self.player}",
+            MP_PATH, f"{MP_MEMB}.{command}"
+        ] + (parameters.split() if parameters else []),
+        stdout=subprocess.PIPE,
+        env=self._get_dbus_env(), text=True).communicate()[0]
+
+    def _sp_dbus_set(self, command, parameters):
+        return subprocess.Popen([
+            "dbus-send", "--print-reply", f"--dest={self.player}",
+            MP_PATH, PROP_SET_PATH, f'string:{MP_MEMB_PLAYER}',
+            f'string:{command}'
+        ] + (parameters.split() if parameters else []),
+        stdout=subprocess.PIPE,
+        env=self._get_dbus_env(), text=True).communicate()[0]
+
+    async def _sp_open(self, uri):
+        return self._sp_player_dbus("OpenUri", f"string:{uri}")
+
+    async def sp_play(self):
+        return self._sp_player_dbus("PlayPause", "")
+
+    async def sp_pause(self):
+        return self._sp_player_dbus("Pause", "")
+
+    async def sp_next(self):
+        return self._sp_player_dbus("Next", "")
+
+    async def sp_previous(self):
+        return self._sp_player_dbus("Previous", "")
+
+    async def sp_seek(self, amount):
+        return self._sp_player_dbus("Seek", f"int64:{amount}")
+
+    async def sp_set_position(self, position : int, trackid : str):
+        return self._sp_player_dbus("SetPosition", f"objpath:{trackid} int64:{position}")
+
+    async def sp_set_volume(self, volume):
+        return self._sp_dbus_set("Volume", f"variant:double:{volume}")
+
+    async def sp_track_status(self):
+        result = subprocess.Popen(
+            [
+                "dbus-send", "--print-reply",
+                f"--dest={self.player}", MP_PATH, PROP_PATH,
+                f'string:{MP_MEMB_PLAYER}', "string:PlaybackStatus"
+            ],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+        return result.strip().split('"')[-2]
+
+    async def sp_track_progress(self):
+        result = subprocess.Popen(
+            [
+                "dbus-send", "--print-reply",
+                f"--dest={self.player}", MP_PATH, PROP_PATH,
+                f'string:{MP_MEMB_PLAYER}', "string:Position"
+            ],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+        return result.strip().splitlines()[-1].split()[-1]
+
+    async def sp_get_volume(self):
+        result = subprocess.Popen(
+            [
+                "dbus-send", "--print-reply",
+                f"--dest={self.player}", MP_PATH, PROP_PATH,
+                f'string:{MP_MEMB_PLAYER}', "string:Volume"
+            ],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+        return result.strip().splitlines()[-1].split()[-1]
+
+    async def sp_can_seek(self):
+        result = subprocess.Popen(
+            [
+                "dbus-send", "--print-reply",
+                f"--dest={self.player}", MP_PATH, PROP_PATH,
+                f'string:{MP_MEMB_PLAYER}', "string:CanSeek"
+            ],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+        return result.strip().splitlines()[-1].split()[-1]
+
+    async def sp_test_volume_control(self):
+        # Capability checks must not change playback volume.
+        try:
+            await self.sp_get_volume()
+            return "true"
+        except (IndexError, ValueError):
+            return "false"
+
+    async def sp_identity(self, orgPath: str):
+        result = subprocess.Popen(
+            [
+                "dbus-send",
+                "--print-reply",
+                f"--dest={orgPath}",
+                MP_PATH,
+                PROP_PATH,
+                f'string:{MP_MEMB}',
+                "string:Identity"
+            ],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+
+        return result.strip().split('"')[-2]
+
+    async def get_meta_data(self):
+        try:
+            result = subprocess.Popen(
+                [
+                    "dbus-send", "--print-reply",
+                    f"--dest={self.player}", MP_PATH, PROP_PATH,
+                    f'string:{MP_MEMB_PLAYER}', "string:Metadata"
+                ],
+                stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+            ).communicate()[0]
+            lines = result.splitlines()[1:]  # Skip the first "method" line
+            # Extract quoted strings or numbers
+            items = []
+            for line in lines:
+                matches = re.findall(r'"(.*?)"|\b([0-9][a-zA-Z0-9.]*)\b', line)
+                for m in matches:
+                    # m is a tuple, one of the groups will be non-empty
+                    value = m[0] if m[0] else m[1]
+                    items.append(value)
+            # Pair items into key|value, remove namespaces and quotes
+            cleaned = []
+            skip_next = False
+            for i, val in enumerate(items):
+                if skip_next:
+                    skip_next = False
+                    continue
+                key = re.sub(r'^(xesam:|mpris:)', '', val)
+                if i + 1 < len(items):
+                    value = items[i + 1]
+                    # Merge consecutive quotes into a single separator
+                    cleaned.append(f"{key}|{value}")
+                    skip_next = True
+            result = "\n".join(cleaned)
+        except Exception:
+            result = "Unavailable"
+        return result
+
+    async def cache_album_art(self, artUrl: str):
+        if (not artUrl.startswith('file:///')):
+            return artUrl
+        if (self.previousCachedImage != ""):
+            os.remove(self.previousCachedImage)
+            self.previousCachedImage = ""
+
+        artUrl = artUrl.removeprefix('file://')
+        if (not os.path.exists(artUrl)):
+            return ""
+
+        baseName = os.path.basename(artUrl)
+        target = os.path.join(self.cacheDir, baseName)
+
+        print("[Legion Music Decky] Cache-copying: " +  artUrl + " to" + target)
+        sys.stdout.flush()
+
+        shutil.copy2(artUrl, target)
+        self.previousCachedImage = target
+
+        return ("https://steamloopback.host/images/deckycache_legionMusic/" + baseName)
+
+    async def sp_list_media_players(self):
+        result = subprocess.Popen(
+            ["dbus-send", "--print-reply", "--dest=org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus.ListNames"],
+            stdout=subprocess.PIPE, env=self._get_dbus_env(), text=True
+        ).communicate()[0]
+        stripped = result.split('array [')[1].split(']')[0].replace("\n", "", 1).replace("\n", ",") \
+            .replace(" ", "").replace("string", "").replace("\"", "").rstrip(',')
+        services = stripped.split(',')
+
+        mediaPlayers = []
+        for service in services:
+            if service.find('org.mpris.MediaPlayer2') != -1:
+                mediaPlayers.append(service)
+
+        servicesString = ""
+        mediaPlayerCount = len(mediaPlayers)
+        for i in range(mediaPlayerCount):
+            servicesString += mediaPlayers[i]
+            if i < mediaPlayerCount - 1:
+                servicesString += ','
+        return servicesString
+
+    async def sp_set_media_player(self, player : str):
+        self.player = player
+
+    async def sp_get_media_player(self):
+        return self.player
+
+    async def _main(self):
+        print(f"[Legion Music Decky] UID: {os.getuid()}")
+        sys.stdout.flush()
+        self.cacheDir = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "cache")
+        self.symLinkPath = os.path.join(decky.DECKY_USER_HOME, ".local/share/Steam/steamui/images/deckycache_legionMusic")
+
+        self.previousCachedImage = ""
+        self.player = SP_DEST
+
+        try:
+            if os.path.exists(self.cacheDir):
+                shutil.rmtree(self.cacheDir)
+        except:
+            print(f"[Legion Music Decky] Failed to clear cache folder")
+
+        if not os.path.exists(self.cacheDir):
+            os.makedirs(self.cacheDir)
+
+        if (not os.path.exists(self.symLinkPath)):
+            os.symlink(self.cacheDir, self.symLinkPath, True)
+
+        pass
