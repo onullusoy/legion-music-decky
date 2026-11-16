@@ -95,3 +95,8 @@ export function setMediaPlayer(player: string): Promise<any> {
 
   return request("sp_set_media_player", { player });
 }
+
+export type LyricsResult = { state: "idle" | "found" | "not_found" | "instrumental" | "unavailable" | "disabled"; text: string };
+export const getLyricsEnabled = () => call<[], boolean>("get_lyrics_enabled");
+export const setLyricsEnabled = (enabled: boolean) => call<[boolean], boolean>("set_lyrics_enabled", enabled);
+export const getLyrics = (title: string, artist: string, duration: number) => call<[string, string, number], LyricsResult>("get_lyrics", title, artist, duration);

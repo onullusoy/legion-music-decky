@@ -4,7 +4,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, Mock, AsyncMock
 
 sys.modules["decky"] = types.ModuleType("decky")
 spec = importlib.util.spec_from_file_location("music_backend", Path(__file__).resolve().parents[1] / "main.py")
@@ -53,6 +53,13 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(popen.call_count, 1)
         self.assertIn("org.freedesktop.DBus.Properties.Get", popen.call_args.args[0])
 
+
+    def test_disabled_lyrics_never_calls_provider(self):
+        self.plugin.get_lyrics_enabled = AsyncMock(return_value=False)
+        self.plugin._lyrics = Mock()
+        result = asyncio.run(self.plugin.get_lyrics("Example", "Artist", 180))
+        self.assertEqual(result["state"], "disabled")
+        self.plugin._lyrics.get.assert_not_called()
 
 
 if __name__ == "__main__":

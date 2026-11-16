@@ -29,7 +29,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='.legion-music-', dir=target.parent) as temporary:
         staged = Path(temporary) / 'MusicControl'
         staged.mkdir()
-        for name in ('LICENSE', 'README.md', 'THIRD_PARTY_NOTICES.md', 'SOURCE.md', 'main.py', 'package.json', 'plugin.json'):
+        for name in ('LICENSE', 'README.md', 'THIRD_PARTY_NOTICES.md', 'SOURCE.md', 'main.py', 'legion_lyrics.py', 'package.json', 'plugin.json'):
             shutil.copy2(source / name, staged / name)
         for name in ('assets', 'dist'):
             shutil.copytree(source / name, staged / name, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))

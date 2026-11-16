@@ -18,6 +18,9 @@ Built on [MusicControl by MartinPL](https://github.com/martinpl/MusicControl), o
 
 - An original dark player with large artwork, elapsed time and clear transport controls.
 - **Open music room** opens Listen and About pages with controller navigation.
+- Lyrics from [LRCLIB](https://lrclib.net/docs) replace the promotional side card. Lyrics start enabled; **Lyrics on / Lyrics off** saves your preference.
+- Turn lyrics off to make the player full width. Turning them off stops new lyric lookups.
+- Lookups send the track title, artist and duration to LRCLIB, once per track, only while the lyrics panel is open. Responses are cached in memory; lyrics are not saved to disk. Missing lyrics, instrumental tracks and connection errors have separate states. There is no login or API key.
 - Controls work with compatible music apps already running on the device.
 
 ## 🔧 Compatibility work
@@ -36,7 +39,7 @@ Requires Bazzite, Decky Loader and a music player supporting MPRIS, such as Spot
 3. Paste:
 
    ```text
-   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.10/LegionMusicDecky-1.1.10.zip
+   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.11/LegionMusicDecky-1.1.11.zip
    ```
 
 4. Open **Decky → Legion Music Decky**.
@@ -65,7 +68,7 @@ The installer backs up the existing plugin, preserves settings and restarts Deck
 
 ## 🧪 Validation
 
-Five backend checks cover compatibility and playback calls. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the redesigned 1.1.10 panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
+Fourteen backend checks cover compatibility, playback, lyric matching requests, caching and the saved toggle. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the 1.1.11 lyrics panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
 
 ## 💜 License
 

@@ -4,6 +4,10 @@ import os
 import sys
 import shutil
 import re
+import asyncio
+
+sys.path.insert(0, os.path.dirname(__file__))
+from legion_lyrics import LyricsClient, LyricsPreferences
 
 import decky
 
@@ -230,6 +234,17 @@ class Plugin:
     async def sp_get_media_player(self):
         return self.player
 
+    async def get_lyrics_enabled(self):
+        return LyricsPreferences(decky.DECKY_PLUGIN_SETTINGS_DIR).enabled()
+
+    async def set_lyrics_enabled(self, enabled: bool):
+        return LyricsPreferences(decky.DECKY_PLUGIN_SETTINGS_DIR).set_enabled(enabled)
+
+    async def get_lyrics(self, title: str, artist: str, duration: float = 0):
+        if not await self.get_lyrics_enabled():
+            return {"state": "disabled", "text": ""}
+        return await asyncio.to_thread(self._lyrics.get, title, artist, duration)
+
     async def _main(self):
         print(f"[Legion Music Decky] UID: {os.getuid()}")
         sys.stdout.flush()
@@ -238,6 +253,7 @@ class Plugin:
 
         self.previousCachedImage = ""
         self.player = SP_DEST
+        self._lyrics = LyricsClient()
 
         try:
             if os.path.exists(self.cacheDir):
