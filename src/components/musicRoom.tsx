@@ -26,7 +26,6 @@ export const MusicRoom = ({ children }: PropsWithChildren) => {
   return <Focusable className="lmd lmd-room" onCancelButton={() => Navigation.NavigateBack()}>
     <header className="room-header"><div className="wordmark"><span className="brand-mark"><FaHeadphones /></span><div><div className="brand-name">LEGION MUSIC</div><div className="brand-sub">YOUR GAME. YOUR SOUND.</div></div></div>
       <DialogButton className="btn quiet" onClick={() => Navigation.NavigateBack()}><FaArrowLeft /> Back to game</DialogButton></header>
-    <div className="eyebrow">A LITTLE SPACE FOR YOUR SOUNDTRACK</div><h1 className="room-heading">Set the mood. Stay in the game.</h1>
     <Focusable className="tabs" flow-children="horizontal">
       <DialogButton className={`btn tab ${tab === "listen" ? "active" : ""}`} onClick={() => setTab("listen")}><FaMusic /> Listen</DialogButton>
       <DialogButton className={`btn tab ${tab === "about" ? "active" : ""}`} onClick={() => setTab("about")}><FaInfoCircle /> About</DialogButton>

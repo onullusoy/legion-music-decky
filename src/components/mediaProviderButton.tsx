@@ -50,6 +50,7 @@ export const MediaProviderButton: FC<MediaProviderProps> = (
       {props.currentProvider == ""
         ? "No Media Player Found"
         : getDisplayNameForProvider(props.currentProvider)}
+      {state.providers.length > 1 && <span style={{ fontSize: 10, opacity: .7 }}>Switch player</span>}
     </DialogButton>
   );
 };

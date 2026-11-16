@@ -1,6 +1,6 @@
 // Original About screen for Legion Music Decky, 2026-11-16.
 import { FaHeadphones } from "react-icons/fa";
-const version = "1.1.12";
+const version = "1.1.13";
 export const InfoPage = () => <div className="room-grid">
   <section className="card side-card"><span className="brand-mark"><FaHeadphones /></span><div className="eyebrow" style={{ marginTop: 20 }}>MADE FOR THE HANDHELD MOMENT</div>
     <h2 className="section-title">A music corner for your Legion.</h2><p className="body-copy">Legion Music Decky brings your soundtrack into your game. A focused player, clear controls and your music close at hand.</p>

@@ -193,10 +193,10 @@ export const Content: FC<{ immersive?: boolean }> = ({ immersive = false }) => {
     <div className={`track ${immersive ? "hero-track" : ""}`}>
       <AlbumArt albumArt={state.currentArtUrl} />
       <ArtistInfoPanel title={state.hasAvailableTrack ? state.currentSong : "Ready when you are."}
-        artist={state.hasAvailableTrack ? state.currentArtist : "Start Spotify and pick something good."} />
+        artist={state.hasAvailableTrack ? state.currentArtist : "Start a media player and pick something good."} />
     </div>
     <MusicControls /><SongProgressSlider />
-    {state.currentServiceProvider && <div className="hint">Listening with {player}</div>}
+    {!immersive && state.currentServiceProvider && <div className="hint">Listening with {player}</div>}
     <VolumeControl />
     <MediaProviderButton currentProvider={state.currentServiceProvider} />
   </div>;

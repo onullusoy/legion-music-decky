@@ -16,7 +16,7 @@ Built on [MusicControl by MartinPL](https://github.com/martinpl/MusicControl), o
 
 ## ✨ Your music room
 
-- An original dark player with large artwork, elapsed time and clear transport controls.
+- A compact, viewport-sized Music Room with horizontal artwork, elapsed time and clear transport controls. The lyrics scroll inside their panel; short screens can scroll the player card without scrolling the whole page.
 - **Open music room** opens Listen and About pages with controller navigation.
 - Lyrics from [LRCLIB](https://lrclib.net/docs) replace the promotional side card. Lyrics start enabled; **Lyrics on / Lyrics off** saves your preference.
 - Turn lyrics off to make the player full width. Turning them off stops new lyric lookups.
@@ -39,7 +39,7 @@ Requires Bazzite, Decky Loader and a music player supporting MPRIS, such as Spot
 3. Paste:
 
    ```text
-   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.12/LegionMusicDecky-1.1.12.zip
+   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.13/LegionMusicDecky-1.1.13.zip
    ```
 
 4. Open **Decky → Legion Music Decky**.
@@ -51,6 +51,10 @@ The archive uses the existing `MusicControl` directory and replaces Music Contro
 In Desktop Mode, add your music player to Steam as a non-Steam game. Return to Gaming Mode, launch it and start playback. Keep the player running while opening a game, then open Legion Music Decky. Use the player button to cycle between detected applications. Seek and volume support depend on the player.
 
 Decky's panel is designed for Gaming Mode / Steam Big Picture, not as a standalone desktop settings window.
+
+### YouTube in a browser
+
+The player selector accepts any app exposing MPRIS, including supported Firefox/Chromium browser sessions. Play a YouTube video in the browser on the same device, keep it running and use **Switch player** to select the browser. This controls the browser's current media session; there is no embedded YouTube browser, search or playlist API. Which controls and metadata appear depends on the browser and video. Live YouTube playback has not yet been verified on the Legion Go.
 
 ## 🛠️ Build from source
 
@@ -68,7 +72,7 @@ The installer backs up the existing plugin, preserves settings and restarts Deck
 
 ## 🧪 Validation
 
-Sixteen backend checks cover compatibility, playback, lyric matching requests, caching and the saved toggle. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the 1.1.12 lyrics panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
+Sixteen backend checks cover compatibility, playback, lyric matching requests, caching and the saved toggle. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the 1.1.13 lyrics panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
 
 ## 💜 License
 

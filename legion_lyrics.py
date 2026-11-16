@@ -77,7 +77,7 @@ class LyricsClient:
             if duration:
                 query["duration"] = duration
             request = Request("https://lrclib.net/api/get?" + urlencode(query), headers={
-                "User-Agent": "LegionMusicDecky/1.1.12 (https://github.com/onullusoy/legion-music-decky)"
+                "User-Agent": "LegionMusicDecky/1.1.13 (https://github.com/onullusoy/legion-music-decky)"
             })
             result, ttl = {"state": "unavailable", "text": ""}, 60
             try:

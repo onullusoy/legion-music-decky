@@ -15,3 +15,5 @@ Changes for 1.1.10 (2026-11-16): remove the Spotify shelf feature and related ba
 Changes for 1.1.11 (2026-11-16): replace the promotional card with optional LRCLIB lyrics, enabled by default, with a saved toggle and a full-width player when disabled. LRCLIB (https://lrclib.net) provides lyrics at runtime; no lyrics are bundled with the release.
 
 Changes for 1.1.12 (2026-11-16): use the system CA bundle for verified lyrics HTTPS and report safe failure categories without logging track metadata or lyrics.
+
+Changes for 1.1.13 (2026-11-16): compact viewport-constrained Music Room, smaller artwork and lyrics, and a clearer multi-player selector.
