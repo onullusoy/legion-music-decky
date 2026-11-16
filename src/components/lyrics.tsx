@@ -20,11 +20,15 @@ export const Lyrics = () => {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [state.currentSong, state.currentArtist, duration, state.hasAvailableTrack]);
+  const unavailable = result.reason === "tls" ? "The lyrics service's certificate could not be verified."
+    : result.reason === "network" ? "Could not reach LRCLIB. Check your internet connection."
+    : result.reason === "service" ? "LRCLIB is temporarily unavailable. Try again later."
+    : "Lyrics could not be loaded. Try reopening the music room.";
   const messages = {
     idle: "Play a track to see its lyrics.",
     not_found: "No lyrics found for this version of the track.",
     instrumental: "This track is instrumental.",
-    unavailable: "Lyrics are unavailable right now. Music controls still work.",
+    unavailable,
     disabled: "Lyrics are turned off.",
     found: "",
   };

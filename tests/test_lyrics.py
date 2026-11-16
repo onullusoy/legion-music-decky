@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
 import tempfile
+import ssl
 import unittest
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import legion_lyrics as lyrics
 
 
@@ -53,6 +54,18 @@ class LyricsTests(unittest.TestCase):
     def test_instrumental_has_its_own_state(self, opened):
         opened.return_value.__enter__.return_value.read.return_value = b'{"instrumental":true}'
         self.assertEqual(lyrics.LyricsClient().get("Example", "Artist")["state"], "instrumental")
+
+    @patch.object(lyrics.ssl, "create_default_context")
+    @patch.object(lyrics.Path, "is_file", return_value=True)
+    def test_system_ca_bundle_keeps_verification_enabled(self, _, context):
+        lyrics.https_context()
+        context.assert_called_once_with(cafile="/etc/ssl/certs/ca-certificates.crt")
+
+    @patch.object(lyrics, "urlopen", side_effect=URLError(ssl.SSLCertVerificationError("certificate")))
+    def test_tls_failure_has_safe_diagnostic(self, _):
+        result = lyrics.LyricsClient().get("Example", "Artist")
+        self.assertEqual(result["reason"], "tls")
+        self.assertEqual(result["text"], "")
 
     def test_preference_defaults_on_and_persists_off(self):
         with tempfile.TemporaryDirectory() as folder:

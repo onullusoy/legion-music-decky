@@ -2,15 +2,26 @@
 from collections import OrderedDict
 import json
 import math
+import logging
+import ssl
 import os
 from pathlib import Path
 import re
 import tempfile
 import threading
 import time
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+
+def https_context():
+    # Decky's bundled OpenSSL may use CA paths absent on the host OS.
+    # Select a real system trust bundle; certificate verification stays on.
+    for path in ("/etc/ssl/certs/ca-certificates.crt", "/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/cert.pem"):
+        if Path(path).is_file():
+            return ssl.create_default_context(cafile=path)
+    return ssl.create_default_context()
 
 
 class LyricsPreferences:
@@ -66,11 +77,11 @@ class LyricsClient:
             if duration:
                 query["duration"] = duration
             request = Request("https://lrclib.net/api/get?" + urlencode(query), headers={
-                "User-Agent": "LegionMusicDecky/1.1.11 (https://github.com/onullusoy/legion-music-decky)"
+                "User-Agent": "LegionMusicDecky/1.1.12 (https://github.com/onullusoy/legion-music-decky)"
             })
             result, ttl = {"state": "unavailable", "text": ""}, 60
             try:
-                with urlopen(request, timeout=6) as response:
+                with urlopen(request, timeout=6, context=https_context()) as response:
                     raw = response.read(262145)
                 if len(raw) > 262144:
                     raise ValueError("Response too large")
@@ -90,16 +101,23 @@ class LyricsClient:
                     result = {"state": "found" if text else "not_found", "text": text}
                 ttl = 3600
             except HTTPError as error:
+                logging.warning("LRCLIB HTTP status: %s", error.code)
+                result["reason"] = "service"
                 if error.code == 404:
                     result, ttl = {"state": "not_found", "text": ""}, 600
                 elif error.code == 429:
                     try:
-                        wait = max(60, min(3600, int(error.headers.get("Retry-After", "60"))))
+                        wait = max(60, min(3600, int((error.headers or {}).get("Retry-After", "60"))))
                     except (ValueError, TypeError):
                         wait = 60
                     self.retry_after = time.monotonic() + wait
-            except (OSError, ValueError, TypeError):
-                pass
+            except URLError as error:
+                reason = "tls" if isinstance(error.reason, ssl.SSLError) else "network"
+                result["reason"] = reason
+                logging.warning("LRCLIB request failed: %s (%s)", reason, type(error.reason).__name__)
+            except (OSError, ValueError, TypeError) as error:
+                result["reason"] = "response"
+                logging.warning("LRCLIB response failed: %s", type(error).__name__)
             self.cache[key] = (time.monotonic() + ttl, result)
             self.cache.move_to_end(key)
             while len(self.cache) > 32:
