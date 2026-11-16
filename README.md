@@ -10,19 +10,15 @@
 
 </div>
 
-A compact player in Quick Access, a full-screen Music Room and a personal shelf of Spotify playlist and album shortcuts. Play/pause, skip tracks, seek, adjust player volume and switch between MPRIS-compatible players. Focused on the original Legion Go with Bazzite; other devices and distributions have not been validated.
+A compact player in Quick Access and a full-screen Music Room. Play/pause, skip tracks, seek, adjust player volume and switch between MPRIS-compatible players. Focused on the original Legion Go with Bazzite; other devices and distributions have not been validated.
 
 Built on [MusicControl by MartinPL](https://github.com/martinpl/MusicControl), originally developed by **mirobouma**. Thank you to both projects and the Decky community. Original licenses and attribution are preserved.
 
 ## ✨ Your music room
 
 - An original dark player with large artwork, elapsed time and clear transport controls.
-- **Open music room** opens Listen, Your shelf and About pages with controller navigation.
-- Add a full Spotify playlist or album link in **Your shelf → Add a link**. Spotify's public oEmbed service supplies the title and cover when available. You can give a link your own name; offline or unavailable metadata falls back to a plain shortcut.
-- Select a card to **Open in Spotify**. Spotify must already be running on the device. The command hands the collection to Spotify; playback depends on the Spotify client.
-- **Edit your shelf** removes local shortcuts without changing your Spotify account. Up to 48 collections are stored in Decky's plugin settings directory and survive plugin replacement.
-
-This shelf uses links you add. It does not import your account library, browse tracks inside a playlist, or provide Spotify Connect. There is no login, API key or embedded web player. Spotify is contacted for public metadata only when you add a new collection; this is not polled in the background.
+- **Open music room** opens Listen and About pages with controller navigation.
+- Controls work with compatible music apps already running on the device.
 
 ## 🔧 Compatibility work
 
@@ -40,7 +36,7 @@ Requires Bazzite, Decky Loader and a music player supporting MPRIS, such as Spot
 3. Paste:
 
    ```text
-   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.9/LegionMusicDecky-1.1.9.zip
+   https://github.com/onullusoy/legion-music-decky/releases/download/v1.1.10/LegionMusicDecky-1.1.10.zip
    ```
 
 4. Open **Decky → Legion Music Decky**.
@@ -69,7 +65,7 @@ The installer backs up the existing plugin, preserves settings and restarts Deck
 
 ## 🧪 Validation
 
-Thirteen backend checks cover compatibility, collection validation, persistence and launching. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the redesigned 1.1.9 panel, shelf and controller navigation still require on-device verification. See [TODO.md](TODO.md).
+Five backend checks cover compatibility and playback calls. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the redesigned 1.1.10 panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
 
 ## 💜 License
 

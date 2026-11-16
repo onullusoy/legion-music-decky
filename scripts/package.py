@@ -10,7 +10,7 @@ assert (root / "dist/index.js").is_file(), "Run pnpm check first"
 version = json.loads((root / "package.json").read_text())["version"]
 output = root / "artifacts" / f"LegionMusicDecky-{version}.zip"
 output.parent.mkdir(exist_ok=True)
-files = [root / p for p in ("main.py", "legion_music_library.py", "plugin.json", "package.json", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "SOURCE.md")]
+files = [root / p for p in ("main.py", "plugin.json", "package.json", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "SOURCE.md")]
 for folder in ("dist", "assets"):
     files.extend(p for p in (root / folder).rglob("*") if p.is_file())
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:

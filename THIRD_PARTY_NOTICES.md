@@ -9,3 +9,5 @@ Changes dated 2026-11-16: remove unused getpass/linecache imports that prevent l
 This is an independent community project, not an official Lenovo, Bazzite, Decky or MusicControl release.
 
 Changes for 1.1.9 (2026-11-16): original Quick Access and Music Room layouts, an independent About screen, local Spotify collection bookmarks, public oEmbed metadata retrieval, validated Spotify OpenUri handoff and expanded tests. The original GPL license and source attribution remain in place.
+
+Changes for 1.1.10 (2026-11-16): remove the Spotify shelf feature and related backend integration; remove personal bylines and use project-based package authorship.

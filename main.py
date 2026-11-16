@@ -4,10 +4,6 @@ import os
 import sys
 import shutil
 import re
-import asyncio
-
-sys.path.insert(0, os.path.dirname(__file__))
-from legion_music_library import LibraryStore, spotify_collection
 
 import decky
 
@@ -234,36 +230,6 @@ class Plugin:
     async def sp_get_media_player(self):
         return self.player
 
-    def _collections(self):
-        return LibraryStore(decky.DECKY_PLUGIN_SETTINGS_DIR)
-
-    async def list_collections(self):
-        return self._collections().list()
-
-    async def add_collection(self, url: str, name: str = ""):
-        # The bounded oEmbed request runs off the Decky event loop.
-        async with self._library_lock:
-            return await asyncio.to_thread(self._collections().add, url, name)
-
-    async def remove_collection(self, uri: str):
-        async with self._library_lock:
-            return self._collections().remove(uri)
-
-    async def open_collection(self, uri: str):
-        uri = spotify_collection(uri)["uri"]
-        players = (await self.sp_list_media_players()).split(",")
-        spotify = next((p for p in players if p == SP_DEST or p.startswith(SP_DEST + ".")), None)
-        if not spotify:
-            raise ValueError("Start Spotify on this device, then try again.")
-        result = await asyncio.to_thread(subprocess.run, [
-            "dbus-send", "--print-reply", f"--dest={spotify}", MP_PATH,
-            f"{MP_MEMB_PLAYER}.OpenUri", f"string:{uri}"
-        ], env=self._get_dbus_env(), capture_output=True, text=True, timeout=5)
-        if result.returncode:
-            raise ValueError("Spotify could not open this collection. Check it in Spotify and retry.")
-        self.player = spotify
-        return {"player": spotify}
-
     async def _main(self):
         print(f"[Legion Music Decky] UID: {os.getuid()}")
         sys.stdout.flush()
@@ -272,7 +238,6 @@ class Plugin:
 
         self.previousCachedImage = ""
         self.player = SP_DEST
-        self._library_lock = asyncio.Lock()
 
         try:
             if os.path.exists(self.cacheDir):
