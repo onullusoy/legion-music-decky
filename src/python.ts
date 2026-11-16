@@ -95,3 +95,10 @@ export function setMediaPlayer(player: string): Promise<any> {
 
   return request("sp_set_media_player", { player });
 }
+
+export type Collection = { uri: string; url: string; kind: "playlist" | "album"; title: string; image: string };
+// Library calls propagate errors so the shelf can display useful feedback.
+export const listCollections = () => call<[], Collection[]>("list_collections");
+export const addCollection = (url: string, name: string) => call<[string, string], Collection[]>("add_collection", url, name);
+export const removeCollection = (uri: string) => call<[string], Collection[]>("remove_collection", uri);
+export const openCollection = (uri: string) => call<[string], {player: string}>("open_collection", uri);

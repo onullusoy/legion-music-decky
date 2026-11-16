@@ -1,16 +1,5 @@
-// Modified 2026-11-16 for Legion Music Decky / Decky API v1.
-import { ButtonItem, Navigation } from "@decky/ui";
-import { FC } from "react";
-
-export const InfoSection: FC = () => {
-  const onClickInfo = () => {
-    Navigation.CloseSideMenus();
-    Navigation.Navigate("/decky/legion-music/info");
-  };
-
-  return (
-    <ButtonItem layout="below" bottomSeparator='none' onClick={onClickInfo}>
-      Info
-    </ButtonItem>
-  );
-};
+import { DialogButton, Navigation } from "@decky/ui";
+import { FaArrowRight } from "react-icons/fa";
+export const InfoSection = () => <DialogButton className="btn room-link" onClick={() => {
+  Navigation.CloseSideMenus(); Navigation.Navigate("/decky/legion-music/room");
+}}>Open music room <FaArrowRight /></DialogButton>;

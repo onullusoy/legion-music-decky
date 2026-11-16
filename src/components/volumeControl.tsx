@@ -1,68 +1,21 @@
-// Modified 2026-11-16 for Legion Music Decky / Decky API v1.
-import { useEffect, useRef, FC } from "react";
-import {
-  PanelSectionRow,
-  SliderField,
-  staticClasses,
-} from "@decky/ui";
+// Original player volume layout, 2026-11-16.
+import { useEffect, useRef } from "react";
+import { SliderField } from "@decky/ui";
 import { useStateContext, AppActions } from "../context/context";
-import * as python from "./../python";
-
-export const VolumeControl: FC = () => {
+import * as python from "../python";
+export const VolumeControl = () => {
   const { state, dispatch } = useStateContext();
-  const volumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const onSliderChanged = (value: number) => {
-    const normalizedValue = (value /= 100.0);
-    python.execute(python.triggerSetVolume(normalizedValue));
-
-    dispatch({
-      type: AppActions.AdjustVolumeByUser,
-      value: normalizedValue,
-    });
-
-    if (volumeTimeoutRef.current != null) {
-      clearTimeout(volumeTimeoutRef.current!);
-    }
-
-    volumeTimeoutRef.current = setTimeout(() => {
-      dispatch({
-        type: AppActions.SetIsAdjustingVolume,
-        value: false,
-      });
-    }, 1500);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const change = (value: number) => {
+    python.execute(python.triggerSetVolume(value / 100));
+    dispatch({ type: AppActions.AdjustVolumeByUser, value: value / 100 });
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => dispatch({ type: AppActions.SetIsAdjustingVolume, value: false }), 1500);
   };
-
-  const onDismount = () => {
-    clearTimeout(volumeTimeoutRef!.current!);
-    volumeTimeoutRef.current = null;
-  };
-
-  useEffect(() => {
-    // Clear the interval when the component unmounts
-    return () => {
-      onDismount();
-    };
-  }, []);
-
-  if (!state.hasAvailableTrack || !state.canModifyVolume) return <div />;
-  return (
-    <div>
-      <div
-        style={{ marginTop: "5px" }}
-        className={staticClasses.PanelSectionTitle}
-      >
-        Playback Volume
-      </div>
-      <PanelSectionRow>
-        <SliderField
-          value={Math.round(state.currentVolume * 100)}
-          min={0}
-          max={100}
-          step={1}
-          onChange={onSliderChanged}
-        ></SliderField>
-      </PanelSectionRow>
-    </div>
-  );
+  if (!state.hasAvailableTrack || !state.canModifyVolume) return null;
+  return <div className="volume">
+    <div className="volume-head"><span>PLAYER VOLUME</span><span>{Math.round(state.currentVolume * 100)}%</span></div>
+    <SliderField value={Math.round(state.currentVolume * 100)} min={0} max={100} step={1} onChange={change} />
+  </div>;
 };

@@ -1,44 +1,20 @@
-// Modified 2026-11-16 for Legion Music Decky / Decky API v1.
-import { useState, FC } from "react";
+// Updated 2026-11-16: artwork lifecycle and original player layout.
+import { useEffect, useState } from "react";
 import { defaultState } from "../context/defaultState";
-import * as python from "./../python";
+import * as python from "../python";
 
-export const AlbumArt: FC<{ albumArt: string }> = ({ albumArt }) => {
-  const [isCachingArt, setIsCachingArt] = useState<boolean>(false);
-  const [lastCachedUrl, setLastCachedUrl] = useState<string>("");
-  const [currentDisplayUrl, setCurrentDisplayUrl] = useState<string>(
-    defaultState.currentArtUrl
-  );
-
-  if (lastCachedUrl != albumArt && !isCachingArt) {
+export const AlbumArt = ({ albumArt, size = 88 }: { albumArt: string; size?: number }) => {
+  const [url, setUrl] = useState(defaultState.currentArtUrl);
+  useEffect(() => {
+    let active = true;
+    setUrl(defaultState.currentArtUrl);
     if (albumArt.startsWith("file:///")) {
-      setIsCachingArt(true);
-      python.resolve(python.cacheAlbumArt(albumArt), (cachedArt: string) => {
-        if (cachedArt == "") {
-          setCurrentDisplayUrl(defaultState.currentArtUrl);
-        } else {
-          setCurrentDisplayUrl(cachedArt);
-        }
-
-        setIsCachingArt(false);
+      void python.cacheAlbumArt(albumArt).then(data => {
+        if (active) setUrl(data.success && data.result ? data.result : defaultState.currentArtUrl);
       });
-    } else {
-      setCurrentDisplayUrl(albumArt);
-    }
-
-    setLastCachedUrl(albumArt);
-  }
-
-  return (
-    <div style={{ width: "80px", height: "80px" }}>
-      <img
-        style={{ borderRadius: "5px", width: "80px", height: "80px" }}
-        src={currentDisplayUrl}
-        onError={({ currentTarget }) => {
-          if (currentTarget.src == defaultState.currentArtUrl) return;
-          currentTarget.src = defaultState.currentArtUrl;
-        }}
-      ></img>
-    </div>
-  );
+    } else setUrl(albumArt || defaultState.currentArtUrl);
+    return () => { active = false; };
+  }, [albumArt]);
+  return <img className="art" width={size} height={size} style={{ width: size, height: size }} src={url} alt="Album artwork"
+    onError={() => setUrl(defaultState.currentArtUrl)} />;
 };

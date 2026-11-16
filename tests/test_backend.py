@@ -4,7 +4,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import patch, AsyncMock
 
 sys.modules["decky"] = types.ModuleType("decky")
 spec = importlib.util.spec_from_file_location("music_backend", Path(__file__).resolve().parents[1] / "main.py")
@@ -24,7 +24,7 @@ class BackendTests(unittest.TestCase):
                 raise AssertionError("unused host stdlib import")
             return original(name, *args, **kwargs)
         with patch("builtins.__import__", side_effect=guarded):
-            exec(compile(Path(backend.__file__).read_text(), backend.__file__, "exec"), {})
+            exec(compile(Path(backend.__file__).read_text(), backend.__file__, "exec"), {"__file__": backend.__file__})
 
     @patch.object(backend.subprocess, "Popen")
     def test_v1_instance_play_pause_uses_selected_player(self, popen):
@@ -52,6 +52,23 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(asyncio.run(self.plugin.sp_test_volume_control()), "true")
         self.assertEqual(popen.call_count, 1)
         self.assertIn("org.freedesktop.DBus.Properties.Get", popen.call_args.args[0])
+
+    def test_collection_launch_targets_local_spotify(self):
+        self.plugin.sp_list_media_players = AsyncMock(return_value="org.mpris.MediaPlayer2.vlc,org.mpris.MediaPlayer2.spotify")
+        with patch.object(backend.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            result = asyncio.run(self.plugin.open_collection("https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"))
+            self.assertEqual(result["player"], "org.mpris.MediaPlayer2.spotify")
+            command = run.call_args.args[0]
+            self.assertIn("org.mpris.MediaPlayer2.Player.OpenUri", command)
+            self.assertIn("string:spotify:playlist:37i9dQZF1DXcBWIGoYBM5M", command)
+            self.assertEqual(run.call_args.kwargs["timeout"], 5)
+
+    def test_collection_launch_requires_running_spotify(self):
+        self.plugin.sp_list_media_players = AsyncMock(return_value="org.mpris.MediaPlayer2.vlc")
+        with patch.object(backend.subprocess, "run") as run, self.assertRaises(ValueError):
+            asyncio.run(self.plugin.open_collection("spotify:album:4aawyAB9vmqN3uQ7FjRGTy"))
+        run.assert_not_called()
 
 
 if __name__ == "__main__":

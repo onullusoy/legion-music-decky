@@ -1,6 +1,6 @@
 // Modified 2026-11-16 for Legion Music Decky / Decky API v1.
 import {
-  ButtonItem,
+  DialogButton,
 } from "@decky/ui";
 
 import { FC } from "react";
@@ -46,10 +46,10 @@ export const MediaProviderButton: FC<MediaProviderProps> = (
   };
 
   return (
-    <ButtonItem layout="below" bottomSeparator='none' onClick={handleOnClick} disabled={state.providers.length <= 1}>
+    <DialogButton className="btn player-select" onClick={handleOnClick} disabled={state.providers.length <= 1}>
       {props.currentProvider == ""
         ? "No Media Player Found"
         : getDisplayNameForProvider(props.currentProvider)}
-    </ButtonItem>
+    </DialogButton>
   );
 };

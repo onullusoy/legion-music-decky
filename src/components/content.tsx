@@ -1,12 +1,7 @@
 // Modified 2026-11-16 for Legion Music Decky / Decky API v1.
-import {
-  PanelSection,
-  PanelSectionRow,
-  staticClasses,
-} from "@decky/ui";
-
 import { FC, useEffect, useRef } from "react";
-import { musicControlDividerStyle } from "./../styles/style";
+import { MusicTheme } from "../styles/theme";
+import { MusicRoom } from "./musicRoom";
 
 import { InfoSection } from ".//../components/infoSection";
 import { AlbumArt } from ".//../components/albumArt";
@@ -23,7 +18,7 @@ import { MediaProviderButton } from "./mediaProviderButton";
 import { MusicControls } from "./musicControls";
 import { VolumeControl } from "./volumeControl";
 
-export const Content: FC = () => {
+export const Content: FC<{ immersive?: boolean }> = ({ immersive = false }) => {
   const { state, dispatch } = useStateContext();
   const updateCallback = useRef<() => void>();
 
@@ -190,26 +185,20 @@ export const Content: FC = () => {
     return () => clearInterval(id);
   }, []);
 
-  return (
-    <PanelSection>
-      <div className={staticClasses.PanelSectionTitle}>Currently Playing</div>
-      <div style={{ display: "flex", marginBottom: "5px" }}>
-        <AlbumArt albumArt={state.currentArtUrl} />
-        <ArtistInfoPanel
-          title={state.currentSong}
-          artist={state.currentArtist}
-        />
-      </div>
-      <SongProgressSlider />
-      <MusicControls />
-      <div style={musicControlDividerStyle}></div>
-      <VolumeControl />
-      <PanelSectionRow>
-        <MediaProviderButton currentProvider={state.currentServiceProvider} />
-      </PanelSectionRow>
-      <PanelSectionRow>
-        <InfoSection />
-      </PanelSectionRow>
-    </PanelSection>
-  );
+  const player = state.providersToIdentity.find(p => p.provider === state.currentServiceProvider)?.name
+    || (state.currentServiceProvider.includes("spotify") ? "Spotify" : "Your player");
+  const card = <div className="card player-card">
+    <div className="now-head"><span className="eyebrow">{state.hasAvailableTrack ? "NOW PLAYING" : "YOUR SOUNDTRACK"}</span>
+      <span className="status">{state.hasAvailableTrack ? (state.currentTrackStatus === "Playing" ? "Playing" : "Paused") : "Ready"}</span></div>
+    <div className={`track ${immersive ? "hero-track" : ""}`}>
+      <AlbumArt albumArt={state.currentArtUrl} />
+      <ArtistInfoPanel title={state.hasAvailableTrack ? state.currentSong : "Ready when you are."}
+        artist={state.hasAvailableTrack ? state.currentArtist : "Start Spotify and pick something good."} />
+    </div>
+    <MusicControls /><SongProgressSlider />
+    {state.currentServiceProvider && <div className="hint">Listening with {player}</div>}
+    <VolumeControl />
+    <MediaProviderButton currentProvider={state.currentServiceProvider} />
+  </div>;
+  return <><MusicTheme />{immersive ? <MusicRoom>{card}</MusicRoom> : <div className="lmd">{card}<InfoSection /></div>}</>;
 };
