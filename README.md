@@ -74,6 +74,12 @@ The installer backs up the existing plugin, preserves settings and restarts Deck
 
 Sixteen backend checks cover compatibility, playback, lyric matching requests, caching and the saved toggle. TypeScript validation and the frontend build pass. The user confirmed basic playback works in 1.1.8; the 1.1.13 lyrics panel and controller navigation still require on-device verification. See [TODO.md](TODO.md).
 
+## 💬 Device compatibility feedback
+
+Trying this plugin on a **Legion Go 2** or another handheld? We'd appreciate your feedback on how well it integrates with your device, including what works and what doesn't. Please [open an issue](https://github.com/onullusoy/legion-music-decky/issues) with your device model, OS, Decky Loader and plugin versions, and the features you tested. Reports of successful use are welcome too! Please remove personal information and device serial numbers from any logs or screenshots you share.
+
+Compatibility with these devices has not yet been verified.
+
 ## 💜 License
 
 GPL-3.0; see [LICENSE](LICENSE) and [credits](THIRD_PARTY_NOTICES.md). This is an independent community project.
